@@ -153,7 +153,7 @@ object TimeSeriesService {
   def main(args: Array[String]) {
     val timeSeriesService = new TimeSeriesService()
 
-    val file = new File(args(1))
+    val file = new File(args(0))
     val fileIt = Source.fromFile(file).getLines()
     timeSeriesService.analyzeMeasurements(fileIt)
   }
