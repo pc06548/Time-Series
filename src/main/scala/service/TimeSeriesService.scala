@@ -1,22 +1,15 @@
 package service
 
 import java.io.File
-import java.math.RoundingMode
-import java.text.NumberFormat
-import java.util.Locale
 
 import models.{Measurement, MeasurementAnalysis}
-import output.Output
+import output.OutputToConsole
 
 import scala.collection.immutable.Queue
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
-class TimeSeriesService(T:Int = 60) extends Output {
-
-  val formatter = NumberFormat.getInstance(Locale.US)
-  formatter.setMaximumFractionDigits(5)
-  formatter.setRoundingMode(RoundingMode.HALF_UP)
+class TimeSeriesService(T:Int = 60) extends OutputToConsole {
 
   def analysisInTimeSlide(filePath: String) = {
     val fileIterator = Source.fromFile(filePath).getLines
@@ -36,10 +29,6 @@ class TimeSeriesService(T:Int = 60) extends Output {
     }
   }
 
-  private def printHeader: Unit = {
-    print( """T          V       N RS      MinV    MaxV""")
-    print( """--------------------------------------------""")
-  }
 
   private def getNextMeasurementAnalysis(fileIterator: Iterator[String]): Option[MeasurementAnalysis] = {
     if(fileIterator.hasNext) {
@@ -74,7 +63,7 @@ class TimeSeriesService(T:Int = 60) extends Output {
 
     val measurementBufferForNextIteration: Queue[MeasurementAnalysis] = addNextEntryToBufferIfBufferIsEmpty(bufferQueueWithNewMeasurements, fileIterator)
 
-    print(s"${currentMeasurement.timeStamp} ${formatter.format(currentMeasurement.priceRatio)} ${currentMeasurement.count} ${formatter.format(currentMeasurement.rs)} ${formatter.format(currentMeasurement.minV)} ${formatter.format(currentMeasurement.maxV)}")
+    writeToStream(currentMeasurement)
 
     if(measurementBufferForNextIteration.nonEmpty)
       analyzeR(measurementBufferForNextIteration, fileIterator)
