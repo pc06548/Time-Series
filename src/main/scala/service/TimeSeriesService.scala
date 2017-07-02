@@ -3,8 +3,9 @@ package service
 import java.io.File
 
 import models.{Measurement, MeasurementAnalysis}
-import output.OutputToConsole
+import output.{Output, OutputToConsole}
 
+import scala.annotation.tailrec
 import scala.collection.immutable.Queue
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
@@ -30,6 +31,7 @@ class TimeSeriesService(T:Int = 60) extends OutputToConsole {
   }
 
 
+  @tailrec
   private def getNextMeasurementAnalysis(fileIterator: Iterator[String]): Option[MeasurementAnalysis] = {
     if(fileIterator.hasNext) {
       val line = fileIterator.next()
@@ -42,8 +44,7 @@ class TimeSeriesService(T:Int = 60) extends OutputToConsole {
   }
 
   private def parseMeasurement(line: String): Option[Measurement] = {
-    val lineEntries: Array[String] = if(line.contains(" ")) line.split("\\s+")
-    else line.split("\t")
+    val lineEntries: Array[String] = line.split("\\s+")
     val measurementTry = Try(Measurement(lineEntries(0).toLong, lineEntries(1).toDouble))
     measurementTry match {
       case Success(measurement) => Some(measurement)
@@ -51,7 +52,8 @@ class TimeSeriesService(T:Int = 60) extends OutputToConsole {
     }
   }
 
-  def analyzeR(bufferQueue: Queue[MeasurementAnalysis], fileIterator: Iterator[String]):Unit = {
+  @tailrec
+  final def analyzeR(bufferQueue: Queue[MeasurementAnalysis], fileIterator: Iterator[String]):Unit = {
 
     val (currentMeasurement, slidingWindowMeasurementQueue) = bufferQueue.dequeue
     
@@ -96,7 +98,8 @@ class TimeSeriesService(T:Int = 60) extends OutputToConsole {
     })
   }
 
-  def addNewMeasurementsWithinSlidingRange(bufferQueue: Queue[MeasurementAnalysis], file: Iterator[String], timeStampValueWithWindow:Long, currentEntry:MeasurementAnalysis):(Queue[MeasurementAnalysis]) = {
+  @tailrec
+  final def addNewMeasurementsWithinSlidingRange(bufferQueue: Queue[MeasurementAnalysis], file: Iterator[String], timeStampValueWithWindow:Long, currentEntry:MeasurementAnalysis):(Queue[MeasurementAnalysis]) = {
     if(file.hasNext) {
       val nextMeasurementAnalysisO: Option[MeasurementAnalysis] = getNextMeasurementAnalysis(file)
       nextMeasurementAnalysisO match {
